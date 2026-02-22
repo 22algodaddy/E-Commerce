@@ -1,0 +1,72 @@
+version: "3.9"
+
+services:
+
+  # ---------------- USERS DB ----------------
+  pg-users:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: users
+    ports:
+      - "5432:5432"
+
+  user-service:
+    build: ./Services/UserService
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@pg-users:5432/users
+      SECRET_KEY: supersecretkey
+    depends_on:
+      - pg-users
+
+  # ---------------- PRODUCTS DB ----------------
+  pg-products:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: products
+    ports:
+      - "5433:5432"
+
+  product-service:
+    build: ./Services/ProductService
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@pg-products:5432/products
+    depends_on:
+      - pg-products
+
+  # ---------------- ORDERS DB ----------------
+  pg-orders:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: orders
+    ports:
+      - "5434:5432"
+
+  order-service:
+    build: ./Services/orderService
+    ports:
+      - "8002:8002"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@pg-orders:5432/orders
+      USER_SERVICE_URL: http://user-service:8000
+      PRODUCT_SERVICE_URL: http://product-service:8001
+      PAYMENT_SERVICE_URL: http://payment-service:8003
+    depends_on:
+      - pg-orders
+      - user-service
+      - product-service
+
+
+  payment-service:
+    build: ./Services/PaymentService
+    ports:
+      - "8003:8003"      

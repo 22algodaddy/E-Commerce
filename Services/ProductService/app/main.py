@@ -4,6 +4,7 @@ from app import models, schemas, metrics
 from app.database import engine, get_db
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from fastapi.responses import Response
+from uuid import UUID
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -39,4 +40,18 @@ def health():
 def metrics_endpoint():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
+
+
+@app.get("/products/{product_id}", response_model=schemas.ProductResponse)
+def get_product(product_id: UUID, db: Session = Depends(get_db)):
+    metrics.PRODUCT_REQUEST_COUNT.inc()
+
+    product = db.query(models.Product).filter(
+        models.Product.id == product_id
+    ).first()
+
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    return product
 
