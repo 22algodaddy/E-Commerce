@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, APIRouter
 from sqlalchemy.orm import Session
 from app import models, schemas, metrics
 from app.database import engine, get_db
@@ -10,8 +10,11 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Product Service")
 
+# Create router with prefix
+router = APIRouter(prefix="/products", tags=["Products"])
 
-@app.post("/products", response_model=schemas.ProductResponse)
+
+@router.post("/", response_model=schemas.ProductResponse)
 def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
     metrics.PRODUCT_REQUEST_COUNT.inc()
 
@@ -23,26 +26,13 @@ def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)
     return new_product
 
 
-@app.get("/products", response_model=list[schemas.ProductResponse])
+@router.get("/", response_model=list[schemas.ProductResponse])
 def list_products(db: Session = Depends(get_db)):
     metrics.PRODUCT_REQUEST_COUNT.inc()
-
-    products = db.query(models.Product).all()
-    return products
+    return db.query(models.Product).all()
 
 
-@app.get("/health")
-def health():
-    return {"status": "healthy"}
-
-
-@app.get("/metrics")
-def metrics_endpoint():
-    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
-
-
-
-@app.get("/products/{product_id}", response_model=schemas.ProductResponse)
+@router.get("/{product_id}", response_model=schemas.ProductResponse)
 def get_product(product_id: UUID, db: Session = Depends(get_db)):
     metrics.PRODUCT_REQUEST_COUNT.inc()
 
@@ -55,3 +45,16 @@ def get_product(product_id: UUID, db: Session = Depends(get_db)):
 
     return product
 
+
+@router.get("/health")
+def health():
+    return {"status": "healthy"}
+
+
+@router.get("/metrics")
+def metrics_endpoint():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+# Include router
+app.include_router(router)

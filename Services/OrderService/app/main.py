@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, APIRouter
 from sqlalchemy.orm import Session
 from app import models, schemas, metrics, services
 from app.database import engine, get_db
@@ -9,7 +9,11 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Order Service")
 
-@app.post("/orders", response_model=schemas.OrderResponse)
+# Router with prefix
+router = APIRouter(prefix="/orders", tags=["Orders"])
+
+
+@router.post("/", response_model=schemas.OrderResponse)
 def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
     metrics.ORDER_REQUEST_COUNT.inc()
 
@@ -44,7 +48,8 @@ def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
 
     return new_order
 
-@app.get("/orders/{order_id}", response_model=schemas.OrderResponse)
+
+@router.get("/{order_id}", response_model=schemas.OrderResponse)
 def get_order(order_id: str, db: Session = Depends(get_db)):
     order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if not order:
@@ -52,11 +57,15 @@ def get_order(order_id: str, db: Session = Depends(get_db)):
     return order
 
 
-@app.get("/health")
+@router.get("/health")
 def health():
     return {"status": "healthy"}
 
 
-@app.get("/metrics")
+@router.get("/metrics")
 def metrics_endpoint():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+# Attach router
+app.include_router(router)
