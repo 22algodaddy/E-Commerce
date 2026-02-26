@@ -53,14 +53,6 @@ def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
     return new_order
 
 
-@router.get("/{order_id}", response_model=schemas.OrderResponse)
-def get_order(order_id: str, db: Session = Depends(get_db)):
-    order = db.query(models.Order).filter(models.Order.id == order_id).first()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    return order
-
-
 @router.get("/health")
 def health():
     return {"status": "healthy"}
@@ -70,6 +62,13 @@ def health():
 def metrics_endpoint():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
+
+@router.get("/{order_id}", response_model=schemas.OrderResponse)
+def get_order(order_id: str, db: Session = Depends(get_db)):
+    order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return order
 
 # Attach router
 app.include_router(router)

@@ -37,6 +37,16 @@ def list_products(db: Session = Depends(get_db)):
     return db.query(models.Product).all()
 
 
+@router.get("/health")
+def health():
+    return {"status": "healthy"}
+
+
+@router.get("/metrics")
+def metrics_endpoint():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
 @router.get("/{product_id}", response_model=schemas.ProductResponse)
 def get_product(product_id: UUID, db: Session = Depends(get_db)):
     metrics.PRODUCT_REQUEST_COUNT.inc()
@@ -49,17 +59,5 @@ def get_product(product_id: UUID, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Product not found")
 
     return product
-
-
-@router.get("/health")
-def health():
-    return {"status": "healthy"}
-
-
-@router.get("/metrics")
-def metrics_endpoint():
-    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
-
-
 # Include router
 app.include_router(router)
