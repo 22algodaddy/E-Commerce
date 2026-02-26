@@ -7,12 +7,12 @@ on:
 
 env:
   AWS_REGION: ap-south-1
-  ECR_REPOSITORY: order-service
+  ECR_REPOSITORY: user-service
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
   build-and-push:
-    name: Build & Push OrderService Docker Image
+    name: Build & Push UserService Docker Image
     runs-on: ubuntu-latest
 
     permissions:
@@ -36,7 +36,7 @@ jobs:
       - name: Build, tag, and push image
         run: |
           REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          cd ./Services/OrderService
+          cd ./Services/UserService
           docker build -t $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker tag $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
                      $REGISTRY/$ECR_REPOSITORY:latest
