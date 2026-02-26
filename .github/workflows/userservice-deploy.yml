@@ -7,12 +7,12 @@ on:
 
 env:
   AWS_REGION: ap-south-1
-  ECR_REPOSITORY: product-service
+  ECR_REPOSITORY: user-service
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
   build-and-push:
-    name: Build & Push ProductService Docker Image
+    name: Build & Push UserService Docker Image
     runs-on: ubuntu-latest
 
     permissions:
