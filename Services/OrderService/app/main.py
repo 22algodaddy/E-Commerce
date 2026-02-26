@@ -7,7 +7,11 @@ from fastapi.responses import Response
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Order Service")
+app = FastAPI(
+    title="Order Service",
+    docs_url="/orders/docs",
+    openapi_url="/orders/openapi.json"
+)
 
 # Router with prefix
 router = APIRouter(prefix="/orders", tags=["Orders"])

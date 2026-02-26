@@ -8,7 +8,12 @@ from uuid import UUID
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Product Service")
+app = FastAPI(
+    title="Product Service",
+    docs_url="/products/docs",
+    openapi_url="/products/openapi.json"
+)
+
 
 # Create router with prefix
 router = APIRouter(prefix="/products", tags=["Products"])
